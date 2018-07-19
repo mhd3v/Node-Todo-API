@@ -17,7 +17,7 @@ beforeEach((done) => {
     }).then(() => done());
 }); 
 
-describe('POST /todo', () => {
+describe('POST /todos', () => {
     it('should create a new todo', (done) => {
 
         var text = "testing string";
@@ -64,7 +64,7 @@ describe('POST /todo', () => {
 });
 
 
-describe('GET /todo', () =>{
+describe('GET /todos', () =>{
 
     it('should get all todos', (done) => {
 
@@ -80,7 +80,7 @@ describe('GET /todo', () =>{
 
 });
 
-describe('GET /todo/:id', () => {
+describe('GET /todos/:id', () => {
     it('should return todo doc', (done) => {
         request(app) 
         .get(`/todos/${dummyTodos[0]._id.toHexString()}`) //cant pass object ID driectly to the url 
@@ -98,10 +98,50 @@ describe('GET /todo/:id', () => {
         .end(done);
     });
 
-    it('should return 404 for non-object ids', () => {
+    it('should return 404 for non-object ids', (done) => {
         request(app)
-        .get('todos/123')
+        .get('/todos/123')
         .expect(404)
         .end(done);
     });
+});
+
+describe('DELETE /todos/:id', () => {
+
+    it('should remove a todo', (done) => {
+
+        var id = dummyTodos[0]._id.toHexString();
+
+        request(app)
+        .delete(`/todos/${id}`)
+        .expect(200)
+        .expect((res) => {
+            expect(res.body.todo._id).toBe(id);
+        })
+        .end((err, res) => {
+            if(err)
+                return done(err);
+            
+            Todo.findById(id).then((todo) => {
+                expect(todo).toNotExist();
+                done();
+            }).catch((err) => done(err));
+
+        });
+    });
+
+    it('should return a 404 if todo not found', (done) => {
+        request(app)
+        .delete(`/todo/${new ObjectID().toHexString}`)
+        .expect(404)
+        .end(done);
+    });
+
+    it('should return 404 if ObjectID is invalid', (done) => {
+        request(app)
+        .delete(`/todo/123`)
+        .expect(404)
+        .end(done);
+    });
+
 });
