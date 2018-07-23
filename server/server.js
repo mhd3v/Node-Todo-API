@@ -1,10 +1,11 @@
-var express = require('express');
-var bodyParser = require('body-parser');
+const _ = require('lodash');
+const express = require('express');
+const bodyParser = require('body-parser');
+const {ObjectID} = require('mongodb');
 
 var mongoose = require('./db/mongoose'); //we're not requiring plain 'mongoose' here because we want to get the object that cofigured in the mongoose.js file (local export)
 var {Todo} = require('./models/todo');
 var {User} = require('./models/user');
-var {ObjectID} = require('mongodb');
 
 var app = express();
 
@@ -75,6 +76,39 @@ app.delete('/todos/:id', (req, res) => { //url param defined by :anyVarName
     });
     
    
+});
+
+app.patch('/todos/:id', (req, res) => {
+
+    var id = req.params.id;
+
+    //we're using lodash to insure that only the properties we want can be updated. 
+    var body = _.pick(req.body, ['text', 'completed']); //.pick() takes an object and pulls out the given properties if found in the object 
+
+    if(!ObjectID.isValid(id))
+        return res.status(404).send();
+
+    if(_.isBoolean(body.completed) && body.completed){ //marking todo as completed
+        body.completedAt = new Date().getTime();
+    }
+    else{   //marking todo as not completed
+        body.completed = false;
+        body.completedAt = null;
+    }
+
+    Todo.findByIdAndUpdate(id, {$set : body}, {
+        new: true //same as returnOrginal : true
+    }).then((todo) => {
+
+        if(!todo)
+        return res.status(400).send();
+
+        res.send({todo});
+
+    }).catch((e) => {
+        res.send(400).send();
+    });
+
 });
 
 app.listen(port, () => {
