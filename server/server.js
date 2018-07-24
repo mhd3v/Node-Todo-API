@@ -112,6 +112,23 @@ app.patch('/todos/:id', (req, res) => {
 
 });
 
+app.post('/users', (req, res) => {
+
+    var body = _.pick(req.body, ['email', 'password']);
+
+    var newUser = new User(body);
+
+    newUser.save().then(() => {
+        return newUser.generateAuthToken();    //catched by *** then call (right below this)
+        //res.send(user);
+    }).then((token) => {             // ***
+        res.header('x-auth', token).send(newUser);    //when we set a 'x-' header it means we're creating a custom header 
+    }).catch((err) => {
+        res.status(400).send(err);
+    });
+
+});
+
 app.listen(port, () => {
     console.log(`Started on port ${port}`);
 });
