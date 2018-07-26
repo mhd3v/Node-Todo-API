@@ -7,6 +7,7 @@ const {ObjectID} = require('mongodb');
 var mongoose = require('./db/mongoose'); //we're not requiring plain 'mongoose' here because we want to get the object that cofigured in the mongoose.js file (local export)
 var {Todo} = require('./models/todo');
 var {User} = require('./models/user');
+var {authenticate} = require('./middleware/authenticate');
 
 var app = express();
 
@@ -127,6 +128,12 @@ app.post('/users', (req, res) => {
         res.status(400).send(err);
     });
 
+});
+
+
+
+app.get('/users/me', authenticate, (req, res) => {  //authenticate defined in middleware/authenticate.js
+    res.send(req.user);
 });
 
 app.listen(port, () => {

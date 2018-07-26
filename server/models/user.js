@@ -59,6 +59,29 @@ UserSchema.methods.generateAuthToken = function () {    //can add any instance m
     });
 };
 
+//define Model method (not an instance method like generateAuthToken), i.e. static method
+UserSchema.statics.findByToken = function(token) {
+    var User = this;
+    var decoded;
+
+    try{
+       decoded = jwt.verify(token, 'abc123');
+    }
+    catch(e) {  //if theres a problem, we will return a promise that is caught by server.js
+        // return new Promise((resolve, reject) => {
+        //     reject();
+        // }); 
+        // same but much simpler syntax
+        return Promise.reject(); //any argument in reject will be used as err message by catch
+    }
+
+    return User.findOne({   //find user against the given token
+        '_id': decoded._id,
+        'tokens.token': token,  //quotes are required when we have a . in the value
+        'tokens.access': 'auth'
+    }); //since we're returning this, the promise can be caught in server.js
+};
+
 var User = mongoose.model('User', UserSchema);
 
 // var newUser = new User({
