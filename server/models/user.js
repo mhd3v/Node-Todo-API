@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const validator = require('validator');
 const jwt = require('jsonwebtoken');
 const _ = require('lodash');
+const bcrypt = require('bcryptjs');
 //==========================================================================================
 //Task - Make User model (email - require it - trim it - set type - set min length)
 
@@ -81,6 +82,25 @@ UserSchema.statics.findByToken = function(token) {
         'tokens.access': 'auth'
     }); //since we're returning this, the promise can be caught in server.js
 };
+
+UserSchema.pre('save', function(next) {   //mongoose middleware, this is going to run before save is called
+
+    var user = this;
+    
+    if(user.isModified('password')){    //checking to see if password is already hashed
+
+        bcrypt.genSalt(10, (err, salt) => {
+            bcrypt.hash(user.password, salt, (err, hash) => {
+                user.password = hash;
+                next();
+            });
+        });
+    }
+       
+    else{
+        next();
+    }
+});    
 
 var User = mongoose.model('User', UserSchema);
 

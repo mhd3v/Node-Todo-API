@@ -1,7 +1,23 @@
 const {SHA256} = require('crypto-js');  //this is only for playground (hashing concepts) 
 const jwt = require('jsonwebtoken');    //this eases the task of hashing. 
+const bcrypt = require('bcryptjs');     //module with built in salt functionality
 
+//==========================================================================
 
+var plainPassword = '123abc';
+
+bcrypt.genSalt(10, (err,salt) => {  //first argurment in the no. of rounds (the more the rounds, the longer it'll take)
+    bcrypt.hash(plainPassword, salt, (err, hash) => {
+        console.log(hash);
+    });
+}); 
+
+var hashedPassword = '$2a$10$iTXQ.xnNhRDfwxEFHhgSuOLyku8T8LeMNPMoH2vRzPbZ4ACj1EGSG';
+
+bcrypt.compare(plainPassword, hashedPassword, (err, res) => {   //check if plain password match decypted hashed password
+    console.log(res);
+}); 
+//==========================================================================
 
 // var message = SHA256("hello world!").toString();
 
@@ -34,14 +50,14 @@ const jwt = require('jsonwebtoken');    //this eases the task of hashing.
 
 //=======================================================================================================================================================
 
-var data = {
-    id: 10
-}
+// var data = {
+//     id: 10
+// }
 
-var token = jwt.sign(data, '123abc'); //sign takes the data and the salt. returns a token
+// var token = jwt.sign(data, '123abc'); //sign takes the data and the salt. returns a token
 
-console.log(token);
+// console.log(token);
 
-var decoded = jwt.verify(token, '123abc');    
+// var decoded = jwt.verify(token, '123abc');    
 
-console.log('decoded', decoded);
+// console.log('decoded', decoded);
