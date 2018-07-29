@@ -83,6 +83,34 @@ UserSchema.statics.findByToken = function(token) {
     }); //since we're returning this, the promise can be caught in server.js
 };
 
+
+UserSchema.statics.findByCredentials = function (email, password) {
+
+    var User = this;
+
+    return User.findOne({email}).then((user) => {
+
+        if(!user)
+        return Promise.reject();
+
+        return new Promise((resolve, reject) => {   //we're defining a new promise here since bcrypt doesn't support promises
+
+            bcrypt.compare(password, user.password, (err, res) => {
+                
+                if(res)
+                resolve(user);
+
+                else
+                reject();
+                
+            });
+
+        });
+
+    });
+
+};
+
 UserSchema.pre('save', function(next) {   //mongoose middleware, this is going to run before save is called
 
     var user = this;
