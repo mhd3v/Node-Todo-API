@@ -8,7 +8,7 @@ const {User} = require('./../models/user');
 const {dummyTodos, populateTodos, dummyUsers, populateUsers} = require('./seed/seed');
 
 
-//beforeEach lets us run some code before each test
+//beforeEach lets us run some code before each test (i.e. before each it() call)
 
 beforeEach(populateUsers); 
 beforeEach(populateTodos); 
@@ -293,7 +293,7 @@ describe('POST /users/login', () => {
         .expect((res) => {
             expect(res.headers['x-auth']).toNotExist();
         })
-        .end((err, res) => {
+        .end((err, res) => {    //async end call
             if(err)
             return done(err);
 
@@ -304,4 +304,22 @@ describe('POST /users/login', () => {
         });
     });
 
+});
+
+describe('DELTE /users/me/token', () => {
+    it('should remove auth token on logout', (done) => {
+        request(app)
+        .delete('/users/me/token')
+        .set('x-auth', dummyUsers[0].tokens[0].token)
+        .expect(200)
+        .end((err, res) => {
+            if(err)
+            return done(err);
+
+            User.findById(dummyUsers[0]._id).then((user) => {
+                expect(user.tokens.length).toBe(0);
+                done();
+            }).catch((err) => done(err));
+        });
+    });
 });
