@@ -50,7 +50,7 @@ UserSchema.methods.generateAuthToken = function () {    //can add any instance m
     //this method run for a given user object. that is, we run after the doc has been inserted into the db
     var user = this; //we didnt use a cb function since we want to use 'this'
     var access = 'auth';
-    var token = jwt.sign({_id: user._id.toHexString(), access}, 'abc123').toString();
+    var token = jwt.sign({_id: user._id.toHexString(), access}, process.env.JWT_SECRET).toString();
 
     //user.tokens.concat([{access, token}]); //concat into the tokens array
     user.tokens.push({access, token});
@@ -78,7 +78,7 @@ UserSchema.statics.findByToken = function(token) {
     var decoded;
 
     try{
-       decoded = jwt.verify(token, 'abc123');
+       decoded = jwt.verify(token, process.env.JWT_SECRET);
     }
     catch(e) {  //if theres a problem, we will return a promise that is caught by server.js
         // return new Promise((resolve, reject) => {
