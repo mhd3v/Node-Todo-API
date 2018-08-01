@@ -16,21 +16,27 @@ const dummyUsers = [{
         access: 'auth',
         token: jwt.sign({_id: userOneId, access: 'auth'}, 'abc123').toString()
     }]
-}, {    //user two -> no token
+}, {    
     _id: userTwoId,
     email: 'jen@example.com',
-    password: 'userTwoPass'
+    password: 'userTwoPass',
+    tokens: [{
+        access: 'auth',
+        token: jwt.sign({_id: userTwoId, access: 'auth'}, 'abc123').toString()
+    }]
 }];
 
 var dummyTodos = [{
         text: 'do something',
         completed: false,
-        _id: new ObjectID()
+        _id: new ObjectID(),
+        _creator: userOneId
     }, {
         text: 'second test text',
         _id: new ObjectID(),
         completed: true,
-        completedAt: 666
+        completedAt: 666,
+        _creator: userTwoId
     }
 ];
 

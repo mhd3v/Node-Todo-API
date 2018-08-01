@@ -1,5 +1,12 @@
 var {User} = require('./../models/user');
 
+/*
+authenticate middleware makes the route private because it searches for a user in our database 
+that matches the token sent in the request header. A user only receives 
+a token once they've logged in, so if we find a token in our database that matches, 
+we know the user is logged in and we can then proceed with sending them to the route handler.
+*/
+
 var authenticate = (req, res, next) => {    //defining a middleware
 
     var token = req.header('x-auth'); //get token set by POST /users
