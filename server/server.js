@@ -133,7 +133,7 @@ app.post('/users', (req, res) => {
 
 
 app.get('/users/me', authenticate, (req, res) => {  //authenticate defined in middleware/authenticate.js
-    res.send(req.user);
+    res.send(req.user); //req.user is set by our authentication middleware method
 });
 
 app.post('/users/login', (req, res) => {
@@ -148,6 +148,14 @@ app.post('/users/login', (req, res) => {
         res.status(400).send();
     });
     
+});
+
+app.delete('/users/me/token', authenticate, (req, res) => {
+    req.user.removeToken(req.token).then(() => {    //req.user and req.token is set by our authentication middleware method
+        res.status(200).send();
+    }, () => {
+        res.status(400).send();
+    })    
 });
 
 app.listen(port, () => {

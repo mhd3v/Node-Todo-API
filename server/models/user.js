@@ -60,6 +60,18 @@ UserSchema.methods.generateAuthToken = function () {    //can add any instance m
     });
 };
 
+UserSchema.methods.removeToken = function (token) {
+    var user = this;
+
+    return user.update({
+        $pull: {    //pull operator lets us pull out a wanted object 
+            tokens: {   //pull from token array the token object with the same properties as the token passed into the method
+                token : token   //whole token object is remove
+            }
+        }
+    });
+};
+
 //define Model method (not an instance method like generateAuthToken), i.e. static method
 UserSchema.statics.findByToken = function(token) {
     var User = this;
