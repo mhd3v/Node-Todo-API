@@ -66,31 +66,47 @@ app.get('/todos/:id', authenticate, (req, res) => { //url param defined by :anyV
    
 });
 
-app.delete('/todos/:id', authenticate, (req, res) => { //url param defined by :anyVarName
+app.delete('/todos/:id', authenticate, async (req, res) => { //url param defined by :anyVarName
     
     var id = req.params.id;
 
     if(!ObjectID.isValid(id))
         return res.status(404).send();
     
-    Todo.findOneAndRemove({
-        _id: id,
-        _creator: req.user._id
-    }).then((todo) => {
-
+    try {
+        var todo = await Todo.findOneAndRemove({
+            _id: id,
+            _creator: req.user._id
+        }); 
+    
         if(!todo)
             return res.status(404).send();
-
+    
         res.send({todo});
-
-    }).catch((err) => {
+    } catch (error) {
         res.status(400).send();
-    });
+    }
+    
+    //without async-await :-
+    
+    // Todo.findOneAndRemove({
+    //     _id: id,
+    //     _creator: req.user._id
+    // }).then((todo) => {
+
+    //     if(!todo)
+    //         return res.status(404).send();
+
+    //     res.send({todo});
+
+    // }).catch((err) => {
+    //     res.status(400).send();
+    // });
     
    
 });
 
-app.patch('/todos/:id', authenticate, (req, res) => {
+app.patch('/todos/:id', authenticate, async (req, res) => {
 
     var id = req.params.id;
 
@@ -108,35 +124,62 @@ app.patch('/todos/:id', authenticate, (req, res) => {
         body.completedAt = null;
     }
 
-    Todo.findOneAndUpdate({_id: id, _creator: req.user._id}, {$set : body}, {
-        new: true //same as returnOrginal : true
-    }).then((todo) => {
+    try{
+        var todo = await Todo.findOneAndUpdate({_id: id, _creator: req.user._id}, {$set : body}, {
+            new: true //same as returnOrginal : true
+        });
 
         if(!todo)
         return res.status(400).send();
 
         res.send({todo});
 
-    }).catch((e) => {
+    } catch (err) {
         res.send(400).send();
-    });
+    }
+    
+    //without async-await :-
+
+    // Todo.findOneAndUpdate({_id: id, _creator: req.user._id}, {$set : body}, {
+    //     new: true //same as returnOrginal : true
+    // }).then((todo) => {
+
+    //     if(!todo)
+    //     return res.status(400).send();
+
+    //     res.send({todo});
+
+    // }).catch((e) => {
+    //     res.send(400).send();
+    // });
 
 });
 
-app.post('/users', (req, res) => {
+app.post('/users', async (req, res) => {
 
     var body = _.pick(req.body, ['email', 'password']);
-
     var newUser = new User(body);
 
-    newUser.save().then(() => {
-        return newUser.generateAuthToken();    //catched by *** then call (right below this)
-        //res.send(user);
-    }).then((token) => {             // ***
-        res.header('x-auth', token).send(newUser);    //when we set a 'x-' header it means we're creating a custom header 
-    }).catch((err) => {
+    try {
+        newUser = await newUser.save();
+        var token = await newUser.generateAuthToken();
+        res.header('x-auth', token).send(newUser);
+
+    } catch (err) {
         res.status(400).send(err);
-    });
+    }
+    
+
+    //without async-await :-
+
+    // newUser.save().then(() => {
+    //     return newUser.generateAuthToken();    //catched by *** then call (right below this)
+    //     //res.send(user);
+    // }).then((token) => {             // ***
+    //     res.header('x-auth', token).send(newUser);    //when we set a 'x-' header it means we're creating a custom header 
+    // }).catch((err) => {
+    //     res.status(400).send(err);
+    // });
 
 });
 
@@ -145,26 +188,46 @@ app.get('/users/me', authenticate, (req, res) => {  //authenticate defined in mi
     res.send(req.user); //req.user is set by our authentication middleware method
 });
 
-app.post('/users/login', (req, res) => {
+app.post('/users/login', async (req, res) => {
+    const body = _.pick(req.body, ['email', 'password']);
 
-    var body = _.pick(req.body, ['email', 'password']);
-    
-    User.findByCredentials(body.email, body.password).then((user) => {
-        return user.generateAuthToken().then((token) => {
-            res.header('x-auth', token).send(user);
-        });
-    }).catch((err) => {
+    try {
+        var user = await User.findByCredentials(body.email, body.password);
+        var token = await user.generateAuthToken();
+        res.header('x-auth', token).send(user);
+    } catch (error) {
         res.status(400).send();
-    });
+    }
+
+    //without async-await :-
+    
+    // User.findByCredentials(body.email, body.password).then((user) => {
+    //     return user.generateAuthToken().then((token) => {
+    //         res.header('x-auth', token).send(user);
+    //     });
+    // }).catch((err) => {
+    //     res.status(400).send();
+    // });
     
 });
 
-app.delete('/users/me/token', authenticate, (req, res) => {
-    req.user.removeToken(req.token).then(() => {    //req.user and req.token is set by our authentication middleware method
+app.delete('/users/me/token', authenticate, async (req, res) => {
+
+    try {
+        await req.user.removeToken(req.token);  //req.user and req.token is set by our authentication middleware method
         res.status(200).send();
-    }, () => {
+    } catch (error) {
         res.status(400).send();
-    })    
+    }
+    
+    //without async-await :-
+
+    // req.user.removeToken(req.token).then(() => {    //req.user and req.token is set by our authentication middleware method
+    //     res.status(200).send();
+    // }, () => {
+    //     res.status(400).send();
+    // })    
+
 });
 
 app.listen(port, () => {
